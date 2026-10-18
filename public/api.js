@@ -35,6 +35,7 @@ async function request(path, { method = 'GET', body } = {}) {
 }
 
 export const api = {
+  acceptInvite: (token, password) => request('/auth/invite', { method: 'POST', body: { token, password } }),
   brand: () => request('/brand'),
   me: () => request('/auth/me'),
   login: (username, password) => request('/auth/login', { method: 'POST', body: { username, password } }),

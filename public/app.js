@@ -220,6 +220,33 @@ async function showRoute() {
 }
 
 async function boot() {
+  const callback = new URLSearchParams(location.hash.slice(1));
+  const inviteToken = callback.get('invite_token');
+  if (inviteToken) {
+    history.replaceState(null, '', location.pathname);
+    appEl.innerHTML = `<main class="login-page"><section class="login-panel">
+      <form class="login-card" id="invite-form">
+        <h1>Accept your invitation</h1>
+        <p class="muted">Choose a password for your society account.</p>
+        <div class="field"><label for="invite-password">Password</label>
+        <input id="invite-password" name="password" type="password" autocomplete="new-password" minlength="8" required /></div>
+        <p class="form-error" role="alert"></p>
+        <button class="btn btn-primary" type="submit">Create account</button>
+      </form></section></main>`;
+    appEl.querySelector('form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = appEl.querySelector('button');
+      button.disabled = true;
+      try {
+        await api.acceptInvite(inviteToken, appEl.querySelector('input').value);
+        await showLogin('Invitation accepted. Your administrator must assign the admin or desk role before you sign in.');
+      } catch (error) {
+        appEl.querySelector('[role="alert"]').textContent = error.message;
+        button.disabled = false;
+      }
+    });
+    return;
+  }
   appEl.innerHTML = `<div class="page-loading"><span class="spinner"></span>Opening the desk…</div>`;
   try {
     const [me, settings] = await Promise.all([api.me(), api.getSettings()]);

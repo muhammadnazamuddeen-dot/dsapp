@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS users (
   created_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
 
+CREATE TABLE IF NOT EXISTS login_attempts (key TEXT PRIMARY KEY, count INTEGER NOT NULL, reset_at INTEGER NOT NULL);
+
 CREATE TABLE IF NOT EXISTS sessions (
   token_hash TEXT PRIMARY KEY,
   user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -126,55 +128,4 @@ function seed(db) {
   for (const [key, value] of Object.entries(DEFAULT_SETTINGS)) insertSetting.run(key, value);
 }
 
-function getSettings(db) {
-  const rows = db.prepare('SELECT key, value FROM settings').all();
-  const raw = {};
-  for (const row of rows) raw[row.key] = row.value;
-  return {
-    society_name: raw.society_name || DEFAULT_SETTINGS.society_name,
-    tagline: raw.tagline || DEFAULT_SETTINGS.tagline,
-    currency: raw.currency || DEFAULT_SETTINGS.currency,
-    general_fee: Number(raw.general_fee ?? DEFAULT_SETTINGS.general_fee),
-    executive_fee: Number(raw.executive_fee ?? DEFAULT_SETTINGS.executive_fee),
-  };
-}
-
-const EDITABLE_SETTINGS = new Set(['society_name', 'tagline', 'currency', 'general_fee', 'executive_fee']);
-
-function updateSettings(db, patch) {
-  const upsert = db.prepare(
-    'INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'
-  );
-  for (const [key, value] of Object.entries(patch)) {
-    if (!EDITABLE_SETTINGS.has(key)) continue;
-    upsert.run(key, String(value));
-  }
-  return getSettings(db);
-}
-
-function nextMemberCode(db, year = new Date().getFullYear()) {
-  const key = `member_${year}`;
-  db.prepare(
-    'INSERT INTO counters (key, value) VALUES (?, 1) ON CONFLICT(key) DO UPDATE SET value = value + 1'
-  ).run(key);
-  const row = db.prepare('SELECT value FROM counters WHERE key = ?').get(key);
-  return `DS-${year}-${String(row.value).padStart(4, '0')}`;
-}
-
-function nextReceiptNo(db, year = new Date().getFullYear()) {
-  const key = `receipt_${year}`;
-  db.prepare(
-    'INSERT INTO counters (key, value) VALUES (?, 1) ON CONFLICT(key) DO UPDATE SET value = value + 1'
-  ).run(key);
-  const row = db.prepare('SELECT value FROM counters WHERE key = ?').get(key);
-  return `RCPT-${year}-${String(row.value).padStart(4, '0')}`;
-}
-
-module.exports = {
-  createDb,
-  getSettings,
-  updateSettings,
-  nextMemberCode,
-  nextReceiptNo,
-  DEFAULT_SETTINGS,
-};
+module.exports = { createDb, ...require('./db-settings') };

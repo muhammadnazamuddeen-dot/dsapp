@@ -13,6 +13,18 @@
     "node": ">=22.5"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "@netlify/database": "^2.0.1",
+    "@netlify/functions": "^6.0.2",
+    "@netlify/identity": "^2.0.0",
+    "drizzle-orm": "^1.0.0-beta.22",
+    "express": "^5.1.0",
+    "serverless-http": "^4.0.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.2.17",
+    "@types/node": "^26.6.5",
+    "drizzle-kit": "^1.0.0-beta.22",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
   }
 }
