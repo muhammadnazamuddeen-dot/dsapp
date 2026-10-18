@@ -109,6 +109,16 @@ function migrate(db) {
 function seed(db) {
   const existing = db.prepare('SELECT COUNT(*) AS c FROM users').get().c;
   if (Number(existing) === 0) {
+    if (process.env.NODE_ENV === 'production') {
+      const missing = ['ADMIN_PASSWORD', 'DESK_PASSWORD'].filter((name) => !process.env[name]);
+      if (missing.length) {
+        throw new Error(
+          `[seed] Missing required environment variables on first run: ${missing.join(', ')}. ` +
+            'Set them in the hosting dashboard, then restart.'
+        );
+      }
+    }
+
     const adminUser = process.env.ADMIN_USERNAME || 'admin';
     const adminPass = process.env.ADMIN_PASSWORD || 'admin123';
     const deskUser = process.env.DESK_USERNAME || 'desk1';

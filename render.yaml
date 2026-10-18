@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: dsapp
+    runtime: node
+    plan: 0.5c-512mb
+    region: singapore
+    branch: main
+    autoDeployTrigger: commit
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/brand
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: DB_PATH
+        value: /var/data/society.db
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: DESK_USERNAME
+        value: desk1
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DESK_PASSWORD
+        sync: false
+    disk:
+      name: data
+      mountPath: /var/data
+      sizeGB: 1

@@ -24,8 +24,9 @@ credentials with the `ADMIN_USERNAME` / `ADMIN_PASSWORD` and `DESK_USERNAME` / `
 environment variables before the first start, then change both passwords from **Settings** after
 signing in.
 
-If those variables are omitted, the development defaults in `src/db.js` are used. Do not use the
-defaults for a real deployment.
+In production (`NODE_ENV=production`), both passwords are required on the first run: the app
+refuses to seed an empty database without them. Locally, the development defaults in `src/db.js`
+are used.
 
 ### Configuration
 
@@ -46,6 +47,29 @@ Example:
 ```bash
 PORT=8080 ADMIN_PASSWORD='a-long-secret' DESK_PASSWORD='another-long-secret' npm start
 ```
+
+## Deployment
+
+The app needs a host that runs a long-lived Node.js process and provides a writable disk.
+Static/serverless platforms such as Netlify and Vercel are not suitable: they do not keep
+`data/society.db` or SQLite-backed sessions between requests.
+
+### Render
+
+The repository includes a `render.yaml` Blueprint and pins Node.js 24 via `.node-version`.
+
+1. Push the repository to GitHub.
+2. In Render, choose **New → Blueprint** and connect the repository.
+3. When prompted, enter `ADMIN_PASSWORD` and `DESK_PASSWORD`. They create the first accounts and
+   are required on the first production start.
+4. Apply the Blueprint. Render runs `npm ci`, starts `npm start`, and mounts a 1 GB disk at
+   `/var/data`; SQLite stores the database at `/var/data/society.db`.
+5. Open the service URL and sign in with the admin and desk usernames you configured. Change both
+   passwords from **Settings**.
+
+A persistent disk requires a paid Render instance. The free plan has an ephemeral filesystem, so
+member data would be lost on each deploy or restart. Render snapshots the disk daily; export CSV
+regularly as an additional backup.
 
 ## What each role can do
 
