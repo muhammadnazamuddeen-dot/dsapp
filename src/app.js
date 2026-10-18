@@ -7,7 +7,7 @@ const authRoutes = require('./routes/auth');
 const memberRoutes = require('./routes/members');
 const adminRoutes = require('./routes/admin');
 
-const PUBLIC_DIR = path.join(__dirname, '..', 'public');
+const UI_DIR = path.join(__dirname, '..', 'dist');
 
 function createApp(db) {
   const app = express();
@@ -47,7 +47,7 @@ function createApp(db) {
   app.use('/api', adminRoutes(db));
 
   app.use(
-    express.static(PUBLIC_DIR, {
+    express.static(UI_DIR, {
       index: false,
       maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0,
     })
@@ -56,7 +56,7 @@ function createApp(db) {
   app.use((req, res, next) => {
     if (req.method !== 'GET' || req.path.startsWith('/api/')) return next();
     res.setHeader('Cache-Control', 'no-store');
-    res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+    res.sendFile(path.join(UI_DIR, 'index.html'));
   });
 
   app.use((req, res) => {

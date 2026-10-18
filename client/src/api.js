@@ -29,6 +29,9 @@ async function request(path, { method = 'GET', body } = {}) {
   const data = isJson ? await response.json().catch(() => null) : null;
 
   if (!response.ok) {
+    if (response.status === 401 && path !== '/auth/login' && path !== '/auth/me') {
+      window.dispatchEvent(new Event('ds:unauthorized'));
+    }
     throw new ApiError(data?.error || `Request failed (${response.status}).`, response.status, data);
   }
   return data;

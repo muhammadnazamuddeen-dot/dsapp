@@ -4,7 +4,7 @@ A small, self-contained registration and payments app for a debating society. De
 register general and executive members, record online or cash payments, and print receipts.
 Admins additionally manage accounts, money settings and the roster export.
 
-Built with Node.js, Express and SQLite. No build step, no external services required.
+Built with Node.js, Express, React, Vite and SQLite. No external services required.
 
 ![flow](https://img.shields.io/badge/roles-admin%20%2B%20desk-0f1a2b) ![payments](https://img.shields.io/badge/payments-online%20%2B%20offline-b8892f)
 
@@ -14,10 +14,20 @@ Requires **Node.js 22.5 or newer** (the app uses the built-in `node:sqlite` modu
 
 ```bash
 npm install
+npm run build
 npm start
 ```
 
-Open <http://127.0.0.1:3000>.
+Open <http://127.0.0.1:3000>. `npm start` serves the built React app from `dist/` together with
+the API.
+
+For development with hot reload, run both the API and the Vite dev server:
+
+```bash
+npm run dev
+```
+
+Open <http://127.0.0.1:5173>. Vite proxies `/api` requests to the Express server on port 3000.
 
 The first run creates `data/society.db` and seeds one admin and one desk account. Choose their
 credentials with the `ADMIN_USERNAME` / `ADMIN_PASSWORD` and `DESK_USERNAME` / `DESK_PASSWORD`
@@ -30,7 +40,7 @@ are used.
 
 ### Configuration
 
-Environment variables (all optional):
+Environment variables (passwords are required on the first production run):
 
 | Variable         | Default              | Purpose                                   |
 |------------------|----------------------|-------------------------------------------|
@@ -62,8 +72,8 @@ The repository includes a `render.yaml` Blueprint and pins Node.js 24 via `.node
 2. In Render, choose **New → Blueprint** and connect the repository.
 3. When prompted, enter `ADMIN_PASSWORD` and `DESK_PASSWORD`. They create the first accounts and
    are required on the first production start.
-4. Apply the Blueprint. Render runs `npm ci`, starts `npm start`, and mounts a 1 GB disk at
-   `/var/data`; SQLite stores the database at `/var/data/society.db`.
+4. Apply the Blueprint. Render runs `npm ci --include=dev && npm run build`, starts `npm start`,
+   and mounts a 1 GB disk at `/var/data`; SQLite stores the database at `/var/data/society.db`.
 5. Open the service URL and sign in with the admin and desk usernames you configured. Change both
    passwords from **Settings**.
 
@@ -126,15 +136,17 @@ front of that route:
 The desk-recorded "online" mode remains useful for bank transfers or wallets that are confirmed
 manually.
 
-## Tests
+## Tests and build
 
 ```bash
 npm test
+npm run build
 ```
 
-Runs integration tests against a temporary SQLite database covering login and sessions, member
-creation and validation, duplicate roll numbers, online/offline payment recording, role
-restrictions, account management, settings, CSV export and password changes.
+`npm test` runs integration tests against a temporary SQLite database covering login and sessions,
+member creation and validation, duplicate roll numbers, online/offline payment recording, role
+restrictions, account management, settings, CSV export and password changes. `npm run build`
+compiles the React client into `dist/`.
 
 ## Project layout
 
@@ -147,12 +159,16 @@ src/routes/auth.js       Login, logout, current user, password change
 src/routes/members.js    Registration, listing, payments, stats, CSV export
 src/routes/admin.js      User accounts and society settings
 src/validate.js          Input normalization and validation
-public/index.html        App shell
-public/app.js            Session bootstrap, shell and hash router
-public/api.js            JSON API client
-public/ui.js             Formatting, icons, modals, toasts
-public/views/*.js        Login, dashboard, registration, members, accounts, settings
-public/styles.css        Design system and responsive styles
+client/index.html         Vite HTML entry point
+client/src/main.jsx      React entry point and providers
+client/src/App.jsx       Authenticated routes and boot states
+client/src/api.js        JSON API client
+client/src/context/      Auth, toast and confirm providers
+client/src/components/   Layout, icons, modals, badges and state helpers
+client/src/pages/        Login, dashboard, registration, members, accounts, settings
+client/src/styles.css    Design system and responsive styles
+vite.config.mjs          Vite root, dev proxy and build output
+dist/                    Generated React build (git-ignored)
 test/app.test.js         API integration tests
 ```
 
@@ -164,7 +180,7 @@ test/app.test.js         API integration tests
   checked server-side, not just hidden in the UI.
 - Mutating API requests must be JSON, which blocks simple cross-site form posts.
 - Login attempts are rate-limited (10 failures per username/IP per 10 minutes).
-- All user data is HTML-escaped before rendering; a strict Content-Security-Policy is set.
+- React escapes user data by default; a strict Content-Security-Policy is set.
 - Back up `data/society.db` (and its `-wal`/`-shm` files) or export CSV regularly.
 
 ## Notes
