@@ -50,7 +50,7 @@ export function loginView(container, { brand, notice, onSuccess }) {
           <p class="form-error" id="login-error" role="alert">${notice ? esc(notice) : ''}</p>
 
           <div class="field" data-field="username">
-            <label for="login-username">Username</label>
+            <label for="login-username">Username or email</label>
             <input
               id="login-username"
               name="username"
@@ -84,9 +84,8 @@ export function loginView(container, { brand, notice, onSuccess }) {
           <details class="demo-note">
             <summary>First-time setup</summary>
             <p>
-              Accounts are created on the first start. Ask your society administrator for your
-              login details, and change the seeded passwords from <strong>Settings</strong> after
-              signing in.
+              Ask your society administrator for your login details. Administrators can use their
+              invited email account; desk members can use accounts created by an administrator.
             </p>
           </details>
         </form>

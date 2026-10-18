@@ -4,9 +4,26 @@ A small, self-contained registration and payments app for a debating society. De
 register general and executive members, record online or cash payments, and print receipts.
 Admins additionally manage accounts, money settings and the roster export.
 
-Built with Node.js, Express and SQLite. No build step, no external services required.
+Built with Node.js and Express. Netlify deployments use Netlify Functions, Netlify Database (Postgres), and Netlify Identity. Local development retains SQLite. No frontend build step is required.
 
 ![flow](https://img.shields.io/badge/roles-admin%20%2B%20desk-0f1a2b) ![payments](https://img.shields.io/badge/payments-online%20%2B%20offline-b8892f)
+
+## Deploying on Netlify
+
+The repository includes publishing and API routing configuration. Netlify serves `public` directly and runs `/api/*` through a function. Database migrations in `netlify/database/migrations` are applied automatically during deployment; no local SQLite files or development accounts are published.
+
+Before signing in for the first time:
+
+1. Open the project's **Identity** section in the Netlify dashboard and invite your administrator email address.
+2. Follow the invitation link to this site and choose a password.
+3. Open that user in Netlify Identity, add the **admin** role, and save.
+4. Sign in to the app using that email address and password. Create desk accounts from **Desk accounts**.
+
+Invited Identity users require the `admin` or `desk` role, assigned through Netlify Identity. Username accounts created inside the app continue to use the existing account controls. Email account password administration is handled by Netlify Identity; an email user can change their own password in Settings.
+
+Registrations, receipts, settings, sessions, and login attempt limits persist in managed Postgres. Receipt and member counters share each registration's database transaction, preventing duplicate serials under concurrent requests. Local development defaults are never seeded in the deployed database.
+
+The online payment shortcut remains a demonstration and does not process real payments.
 
 ## Quick start
 
